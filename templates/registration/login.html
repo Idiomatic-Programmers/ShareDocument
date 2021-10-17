@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-sm-12 col-md-6 col-lg-5 form-container full-height">
+                <form action="" method="post" autocomplete="off">
+                    <div class="form-floating mb-3">
+                      <input type="text" required
+                             class="form-control"
+                             id="{{ form.username.id_for_label }}"
+                             placeholder="johndoe" name="{{ form.username.name }}">
+                      <label for="{{ form.username.id_for_label }}">Username</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                      <input type="password" required
+                             class="form-control"
+                             id="{{ form.password.id_for_label }}"
+                             placeholder="johndoe" name="{{ form.password.name }}">
+                      <label for="{{ form.password.id_for_label }}">Password</label>
+                    </div>
+                    <input type="submit" class="btn btn-primary" value="View Document">
+                    {% csrf_token %}
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

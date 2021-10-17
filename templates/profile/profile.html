@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container">
+        <div class="row">
+            <div class="col-12 col-sm-12 col-md-6 col-lg-5 form-container full-height">
+                <form action="" method="post" id="document_form" enctype="multipart/form-data">
+                    <div class="form-floating mb-3">
+                      <input type="text" required
+                             class="form-control" id="document_title" name="document_title" placeholder="Document">
+                      <label for="document_key">Document Title</label>
+                    </div>
+                    <div class="mb-3">
+                      <input type="file" required accept="application/pdf"
+                             class="form-control" id="document" name="document">
+                    </div>
+                    {% csrf_token %}
+                    <div class="progress mb-3" id="progress" style="display: none;">
+                        <div class="progress-bar" id="progress-bar" role="progressbar" style="width: 0%"
+                             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <div class="mb-3">
+                        <button type="button" onclick="validate(this)" class="btn btn-primary"> Upload Document </button>
+                    </div>
+                    <div id="errors">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        function submit(form, button) {
+            const oReq = new XMLHttpRequest();
+
+            button.setAttribute('disabled', true)
+            button.innerText = "Uploading"
+
+            document.getElementById('progress').style.display = "flex";
+            oReq.upload.addEventListener("progress", updateProgress);
+            oReq.addEventListener("load", transferComplete);
+            oReq.addEventListener("error", transferFailed);
+            oReq.addEventListener("abort", transferCanceled);
+
+            oReq.open("post", "");
+            oReq.send(new FormData(form))
+
+            // progress on transfers from the server to the client (downloads)
+            function updateProgress (oEvent) {
+              if (oEvent.lengthComputable) {
+                const percentComplete = oEvent.loaded / oEvent.total * 100;
+                const progress_bar = document.getElementById('progress-bar');
+                progress_bar.style.width = `${percentComplete}%`;
+                progress_bar.setAttribute('aria-valuenow', `${percentComplete}`)
+              }
+            }
+
+            function transferComplete(evt) {
+              const response = evt.target;
+              if (response.status === 200) {
+                  const data = JSON.parse(response.responseText)
+                  location.href = data['share']
+              }
+            }
+
+            function transferFailed(evt) {
+              console.log("An error occurred while transferring the file.");
+            }
+
+            function transferCanceled(evt) {
+              console.log("The transfer has been canceled by the user.");
+            }
+        }
+
+        function validate(button) {
+            const form = document.getElementById('document_form')
+
+
+            const inputs = form.elements;
+            const document_title = inputs['document_title']
+            const document_file = inputs['document'].files
+
+            const errors = document.getElementById('errors')
+            errors.innerHTML = ""
+
+            let flag = true
+
+            if (document_title.value.length === 0) {
+                flag = false
+                errors.innerHTML += `
+                    <div class="alert alert-danger" role="alert">
+                          Document Title is required
+                    </div>
+                `
+            }
+
+            if (document_file.length === 0) {
+                flag = false
+                errors.innerHTML += `
+                    <div class="alert alert-danger" role="alert">
+                          PDF is required
+                    </div>
+                `
+            } else {
+                const file = document_file[0]
+                if (file.size > 100000000) {
+                    flag = false
+                    errors.innerHTML += `
+                        <div class="alert alert-danger" role="alert">
+                              PDF must be less that 100Mb
+                        </div>
+                    `
+                } else {
+                    if ({{ num_usage }} + file.size >= 20 * (2**30)) {
+                        flag = false
+                        errors.innerHTML += `
+                            <div class="alert alert-danger" role="alert">
+                                  Storage limit exceeded
+                            </div>
+                        `
+                    }
+                }
+            }
+            if (flag) {
+                submit(form, button)
+            }
+        }
+    </script>
+{% endblock %}

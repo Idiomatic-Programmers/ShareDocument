@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="container">
+        <br>
+            {% if documents %}
+                <div class="table-responsive">
+                <table class="table">
+                <thead>
+                    <tr>
+                        <th>Sno</th>
+                        <th>Title</th>
+                        <th>Date</th>
+                        <th>Uploaded By</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for document in documents %}
+                        <tr>
+                            <td>{{ forloop.counter }}.</td>
+                            <td>{{ document.name }}</td>
+                            <td>{{ document.uploaded_on|date:'d M, Y H:i' }}</td>
+                            <td>{{ document.uploaded_by.get_full_name|default:'NA' }}</td>
+                            <td>
+                                <a href="{% url 'accounts_share_document' document.id %}"
+                                   class="btn btn-primary">Share</a>
+                                <a href="{% url 'accounts_delete_document' document.id %}"
+                                   class="btn btn-secondary">Delete</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+            {% else %}
+                <p>You don't have any documents uploaded.</p>
+            {% endif %}
+    </div>
+
+
+{% endblock %}
